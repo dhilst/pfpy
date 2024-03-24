@@ -28,8 +28,8 @@ def dsrqt(x: float): float =
     op.mul(math.sqrt(x), 2);
 
 # types
-type Opt[T] = Sum[Some[T], None];
-type Resut[A, B] = Or[Ok[A], Err[B]];
+type Opt[T] = Union[Some[T], None];
+type Resut[A, B] = Union[Ok[A], Err[B]];
 
 def ret_some(x: int): Opt[int] = Some(x);
 def bind_some(x: Opt[int], f: Arrow[int, Opt[int]]): Opt[int] =
@@ -51,4 +51,9 @@ def opt_add[A](a: Opt[A], b: Opt[A]): Opt[A] =
         end
     end;
 
+# @TODO dicts, lists, tuples and sets notation
+# @TODO lambda notation
+# @TODO let notation
+# @TODO infix operators
+# @TODO let monadic notation
 

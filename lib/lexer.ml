@@ -50,6 +50,8 @@ let rec token buf =
   | ")" -> RPAR
   | "[" -> LBRACKET
   | "]" -> RBRACKET
+  | "{" -> LBRACES
+  | "}" -> RBRACES
   | ":" -> COLON
   | "," -> COMMA
   | "=" -> EQ

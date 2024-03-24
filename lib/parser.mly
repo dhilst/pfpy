@@ -5,15 +5,19 @@ open Ast
 %token <int> INT
 %token <string> STRING
 %token <bool> BOOL
+%token <string> FQID
+%token <string> ID
 %token DEF IMPORT FROM TYPE
-%token MATCH WITH ARROW PIPE END IF THEN ELSE
+%token IF THEN ELSE
+%token MATCH WITH ARROW PIPE END
 %token COMMA COLON SEMICOLON
 %token EOF
 %token EQ
-%token RPAR LPAR
 %token RBRACKET LBRACKET
-%token <string> FQID
-%token <string> ID
+%token RBRACES LBRACES
+%token RPAR LPAR
+
+%nonassoc RPAR LPAR
 %start main             /* the entry point */
 %type <expr> main
 %%
@@ -29,12 +33,12 @@ stmts:
 stmt:
   | import  {}
   | def {}
-  | expr {}
+  | expr_0 {}
   | type_ {}
 ;
 
 type_: 
-  | TYPE ID brkcommalist(arg)? EQ expr {}
+  | TYPE ID brkcommalist(arg)? EQ expr_0 {}
 ;
 
 fqid:
@@ -55,36 +59,68 @@ import:
   | delimited(LBRACKET, separated_list(COMMA, x), RBRACKET) {}
 ;
 
+%inline brccommalist(x):
+  | delimited(LBRACES, separated_list(COMMA, x), RBRACES) {}
+;
+
+
+targ:
+  | ID option(pair(COLON, expr_0)) {}
+
 arg:
-  | ID option(pair(COLON, expr)) {}
+  | ID COLON expr_1 {}
 
 def:
-  | DEF ID brkcommalist(arg)? parcommalist(arg) COLON expr EQ expr {}
+  | DEF ID brkcommalist(targ)? parcommalist(arg) COLON expr_0 EQ expr_0 {}
 ;
 
 // @TODO break this in multiple levels
-expr:
-  | match_ {}
+expr_0:
+  /* | match_ {} */
+  | expr_1 {}
+;
+
+expr_1:
   | if_ {}
+  | expr_2 {}
+
+
+expr_2:
   | app {}
   | var {}
+  /* | set {} */
+  /* | tuple {} */
+  /* | dict {} */
   | const {}
 ;
 
 if_:
-  | IF expr THEN expr ELSE expr {}
+  | IF expr_1 THEN expr_1 ELSE expr_1 {}
 
 match_:
-  | MATCH expr WITH match_pat* END {}
+  | MATCH expr_0 WITH match_pat* END {}
 ;
 
 match_pat:
-  | PIPE expr ARROW expr {}
+  | PIPE expr_0 ARROW expr_0 {}
 ;
 
+/* set: */
+/*   | delimited(LBRACES, separated_nonempty_list(COMMA, expr_1), RBRACES) {} */
+/* ; */
+
+/* tuple: */
+/*   | delimited(LPAR, separated_nonempty_list(COMMA, expr_1), RPAR) {} */
+/* ; */
+
+/* dict: */
+/*   | brccommalist(separated_pair(expr_1, COLON, expr_1)) {} */
+/* ; */
+
 app:
-  | expr parcommalist(expr) {}
-  | expr brkcommalist(expr) {}
+  | expr_1 parcommalist(expr_1) {}
+  | expr_1 brkcommalist(expr_1) {}
+;
 
 var:
   | FQID {}
