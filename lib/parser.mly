@@ -8,16 +8,16 @@ open Ast
 %token <string> FQID
 %token <string> ID
 %token DEF IMPORT FROM TYPE
-%token IF THEN ELSE
 %token MATCH WITH ARROW PIPE END
+%token IF THEN ELSE
 %token COMMA COLON SEMICOLON
 %token EOF
 %token EQ
 %token RBRACKET LBRACKET
 %token RBRACES LBRACES
 %token RPAR LPAR
-
-%nonassoc RPAR LPAR
+%nonassoc IF
+%nonassoc LPAR LBRACKET
 %start main             /* the entry point */
 %type <expr> main
 %%
@@ -38,7 +38,7 @@ stmt:
 ;
 
 type_: 
-  | TYPE ID brkcommalist(arg)? EQ expr_0 {}
+  | TYPE ID brkcommalist(targ)? EQ expr_0 {}
 ;
 
 fqid:
@@ -76,16 +76,12 @@ def:
 
 // @TODO break this in multiple levels
 expr_0:
-  /* | match_ {} */
+  | match_ {}
   | expr_1 {}
 ;
 
 expr_1:
   | if_ {}
-  | expr_2 {}
-
-
-expr_2:
   | app {}
   | var {}
   /* | set {} */
@@ -95,7 +91,7 @@ expr_2:
 ;
 
 if_:
-  | IF expr_1 THEN expr_1 ELSE expr_1 {}
+  | IF expr_1 THEN expr_1 ELSE expr_1 %prec IF {}
 
 match_:
   | MATCH expr_0 WITH match_pat* END {}
