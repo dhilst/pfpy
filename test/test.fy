@@ -32,7 +32,7 @@ lambda (x: int, y: int) => f(y, x);
 # infix operators
 1 + 2;
 1 + 3 + 3;
-# 1 + 2 * 3 - 4;
+1 + 2 * 3 - 4;
 
 # binary operations
 # 1 & 2;
@@ -81,6 +81,6 @@ def opt_add[A](a: Opt[A], b: Opt[A]): Opt[A] =
         end
     end;
 
-# @TODO infix operators
+# @TODO add parathensed expressions
 # @TODO let monadic notation
 

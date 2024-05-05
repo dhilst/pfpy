@@ -23,11 +23,11 @@ open Ast
 %token RBRACES LBRACES
 %token RPAR LPAR
 %nonassoc IF
-%nonassoc LPAR LBRACKET
 %nonassoc BINOP_3
 %left BINOP_2
 %left BINOP_1
 %nonassoc BINOP_0
+%nonassoc LPAR LBRACKET
 %start main             /* the entry point */
 %type <expr> main
 %%
@@ -102,6 +102,7 @@ expr_1:
   | list_ {}
   | dict {}
   | const {}
+  | LPAR expr_1 RPAR %prec RPAR {}
 ;
 
 bin_expr: 
