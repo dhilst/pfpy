@@ -31,7 +31,13 @@ let rec token buf =
   | "#", Star (Sub (any, '\n')), ('\n' | eof) -> token buf
   | Plus (Chars " \t\n") -> token buf
   | ";" -> SEMICOLON
-  | number -> INT (int_of_string (Sedlexing.Utf8.lexeme buf))
+  | "<<" | ">>" | "&" | "^" -> BINOP_3 (Sedlexing.Utf8.lexeme buf)
+  | "*" | "/" | "%" -> BINOP_2 (Sedlexing.Utf8.lexeme buf)
+  | "+" | "-" -> BINOP_1 (Sedlexing.Utf8.lexeme buf)
+  | "==" | "!=" | ">=" | "<=" | ">" | "<" -> BINOP_0 (Sedlexing.Utf8.lexeme buf)
+  | number -> (
+     let i = (int_of_string (Sedlexing.Utf8.lexeme buf)) in
+     INT i)
   | "true" -> BOOL true
   | "false" -> BOOL false
   | "def" -> DEF
@@ -62,4 +68,4 @@ let rec token buf =
   | id -> ID (Sedlexing.Utf8.lexeme buf)
   | fqid -> FQID (Sedlexing.Utf8.lexeme buf)
   | eof -> EOF
-  | _ -> failwith "Unexpected character"
+  | _ -> failwith (Format.sprintf "Unexpected character '%s'" (Sedlexing.Utf8.lexeme buf))

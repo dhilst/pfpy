@@ -4,6 +4,10 @@ open Ast
 
 %token <int> INT
 %token <string> STRING
+%token <string> BINOP_0
+%token <string> BINOP_1
+%token <string> BINOP_2
+%token <string> BINOP_3
 %token <bool> BOOL
 %token <string> FQID
 %token <string> ID
@@ -20,6 +24,10 @@ open Ast
 %token RPAR LPAR
 %nonassoc IF
 %nonassoc LPAR LBRACKET
+%nonassoc BINOP_3
+%left BINOP_2
+%left BINOP_1
+%nonassoc BINOP_0
 %start main             /* the entry point */
 %type <expr> main
 %%
@@ -84,6 +92,7 @@ expr_0:
 ;
 
 expr_1:
+  | bin_expr {}
   | lambda {}
   | if_ {}
   | app {}
@@ -93,6 +102,13 @@ expr_1:
   | list_ {}
   | dict {}
   | const {}
+;
+
+bin_expr: 
+  | expr_1 BINOP_0 expr_1 %prec BINOP_0 {}
+  | expr_1 BINOP_1 expr_1 %prec BINOP_1 {}
+  | expr_1 BINOP_2 expr_1 %prec BINOP_2 {}
+  | expr_1 BINOP_3 expr_1 %prec BINOP_3 {}
 ;
 
 lambda:

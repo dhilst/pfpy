@@ -29,6 +29,22 @@ f(g(x), true, "hello", 1);
 # lamdbas
 lambda (x: int, y: int) => f(y, x);
 
+# infix operators
+1 + 2;
+1 + 3 + 3;
+# 1 + 2 * 3 - 4;
+
+# binary operations
+# 1 & 2;
+
+# boolean operators
+# 1 == 1;
+# 1 != 1;
+# 1 >  1;
+# 1 >= 1;
+# 1 <  1;
+# 1 <= 1;
+
 # function definitions, with optional generic arguments
 def id_int(x: int): int = x;
 def id_int[T](x: T): T = x;
