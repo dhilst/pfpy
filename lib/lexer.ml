@@ -37,7 +37,10 @@ let rec token buf =
   | "def" -> DEF
   | "import" -> IMPORT
   | "from" -> FROM
+  | "lambda" -> LAMBDA
   | "match" -> MATCH
+  | "let" -> LET
+  | "in" -> IN
   | "if" -> IF
   | "then" -> THEN
   | "else" -> ELSE

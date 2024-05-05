@@ -7,8 +7,10 @@ open Ast
 %token <bool> BOOL
 %token <string> FQID
 %token <string> ID
+%token LAMBDA
 %token DEF IMPORT FROM TYPE
 %token MATCH WITH ARROW PIPE END
+%token LET IN
 %token IF THEN ELSE
 %token COMMA COLON SEMICOLON
 %token EOF
@@ -65,7 +67,7 @@ import:
 
 
 targ:
-  | ID option(pair(COLON, expr_0)) {}
+  | ID option(pair(COLON, expr_1)) {}
 
 arg:
   | ID COLON expr_1 {}
@@ -77,21 +79,33 @@ def:
 // @TODO break this in multiple levels
 expr_0:
   | match_ {}
+  | let_ {}
   | expr_1 {}
 ;
 
 expr_1:
+  | lambda {}
   | if_ {}
   | app {}
   | var {}
-  /* | set {} */
-  /* | tuple {} */
-  /* | dict {} */
+  | tuple {}
+  | set {}
+  | list_ {}
+  | dict {}
   | const {}
+;
+
+lambda:
+  | LAMBDA parcommalist(arg) ARROW expr_1 %prec IF {}
+;
+
+let_: 
+  | LET ID EQ expr_1 IN expr_0 {}
 ;
 
 if_:
   | IF expr_1 THEN expr_1 ELSE expr_1 %prec IF {}
+;
 
 match_:
   | MATCH expr_0 WITH match_pat* END {}
@@ -101,17 +115,21 @@ match_pat:
   | PIPE expr_0 ARROW expr_0 {}
 ;
 
-/* set: */
-/*   | delimited(LBRACES, separated_nonempty_list(COMMA, expr_1), RBRACES) {} */
-/* ; */
+list_:
+  | delimited(LBRACKET, separated_nonempty_list(COMMA, expr_1), RBRACKET) {}
+;
 
-/* tuple: */
-/*   | delimited(LPAR, separated_nonempty_list(COMMA, expr_1), RPAR) {} */
-/* ; */
+set:
+  | delimited(LBRACES, separated_nonempty_list(COMMA, expr_1), RBRACES) {}
+;
 
-/* dict: */
-/*   | brccommalist(separated_pair(expr_1, COLON, expr_1)) {} */
-/* ; */
+tuple:
+  | delimited(LPAR, separated_nonempty_list(COMMA, expr_1), RPAR) {}
+;
+
+dict:
+  | brccommalist(separated_pair(expr_1, COLON, expr_1)) {}
+;
 
 app:
   | expr_1 parcommalist(expr_1) {}

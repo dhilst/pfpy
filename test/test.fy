@@ -1,5 +1,7 @@
 # hello comments!
 
+# statements are terminated by ;
+
 # constants
 1;
 "hello world";
@@ -14,6 +16,18 @@ f();
 f(x);
 f(x,1);
 f(g(x), true, "hello", 1);
+
+# tuples
+(1,2,3);
+
+# lists
+[1,2,3];
+
+# dicts
+{ "foo": "bar", "tar": "zar" };
+
+# lamdbas
+lambda (x: int, y: int) => f(y, x);
 
 # function definitions, with optional generic arguments
 def id_int(x: int): int = x;
@@ -51,9 +65,6 @@ def opt_add[A](a: Opt[A], b: Opt[A]): Opt[A] =
         end
     end;
 
-# @TODO dicts, lists, tuples and sets notation
-# @TODO lambda notation
-# @TODO let notation
 # @TODO infix operators
 # @TODO let monadic notation
 
