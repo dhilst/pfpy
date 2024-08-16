@@ -1,5 +1,6 @@
 (menhir
-  (flags --explain --inspection --table --dump)
+  ; https://stackoverflow.com/a/78347477/652528
+  (flags --explain --inspection --table --dump --cmly)
   (modules parser))
 
 (library
