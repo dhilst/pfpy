@@ -39,15 +39,18 @@ lambda (x: int, y: int) => f(y, x);
 2 * (3 + 4);
 
 # binary operations
-# 1 & 2;
+1 & 2;
 
 # boolean operators
-# 1 == 1;
-# 1 != 1;
-# 1 >  1;
-# 1 >= 1;
-# 1 <  1;
-# 1 <= 1;
+1 == 1;
+1 != 1;
+1 >  1;
+1 >= 1;
+1 <  1;
+1 <= 1;
+
+# let expressions
+let x = 1 in x + 1;
 
 # function definitions, with optional generic arguments
 def id_int(x: int): int = x;
@@ -77,6 +80,20 @@ def bind_some2(x: Opt[int], f: int -> Opt[int]): Opt[int] =
     | Some(x) => f(x)
     | None => None     
     end;
+
+# monadic let assigning
+let (let*) = bind_some2;
+
+# monadic let usage
+let* x = Some(1) in
+let* y = Some(2) in
+Some(x + y);
+
+let (let*) = bind_some2 in
+let* w = Some(1) in
+let* z = Some(2) in
+Some(w + w);
+
 
 def fact(x: int): int =
     if eq(x, 1) then 1 else mul(x, fact(sub(x, 1)));

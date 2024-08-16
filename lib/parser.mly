@@ -47,6 +47,12 @@ stmt:
   | def {}
   | expr_0 {}
   | type_ {}
+  | letm_assign {}
+;
+
+// Monadic let assign
+letm_assign:
+  | LET LPAR LET BINOP_2 RPAR EQ ID {}
 ;
 
 type_: 
@@ -120,7 +126,8 @@ lambda:
 ;
 
 let_: 
-  | LET ID EQ expr_1 IN expr_0 {}
+  | LET BINOP_2? ID EQ expr_0 IN expr_0 {}
+  | LET LPAR LET BINOP_2 RPAR EQ ID IN expr_0 {}
 ;
 
 if_:
