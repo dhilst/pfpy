@@ -102,7 +102,7 @@ expr_1:
   | list_ {}
   | dict {}
   | const {}
-  | LPAR expr_1 RPAR %prec RPAR {}
+  | LPAR expr_1 RPAR {}
 ;
 
 bin_expr: 
@@ -141,7 +141,7 @@ set:
 ;
 
 tuple:
-  | delimited(LPAR, separated_nonempty_list(COMMA, expr_1), RPAR) {}
+  | LPAR expr_1 COMMA separated_list(COMMA, expr_1) RPAR {}
 ;
 
 dict:

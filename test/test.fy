@@ -19,6 +19,7 @@ f(g(x), true, "hello", 1);
 
 # tuples
 (1,2,3);
+(1,);
 
 # lists
 [1,2,3];
