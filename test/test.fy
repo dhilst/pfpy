@@ -75,6 +75,7 @@ def bind_some(x: Opt[int], f: Arrow[int, Opt[int]]): Opt[int] =
     | None => None     
     end;
 
+type Opt[T] = Some[T] ^ None;
 def bind_some2(x: Opt[int], f: int -> Opt[int]): Opt[int] =
     match x with
     | Some(x) => f(x)
@@ -108,6 +109,15 @@ def opt_add[A](a: Opt[A], b: Opt[A]): Opt[A] =
         end
     end;
 
-# @TODO let
-# @TODO let monadic notation
+def opt_add2(a: Opt[int], b: Opt[int]): Opt[int] =
+    let (let*) = bind_some2 in
+    let* x = a in
+    let* y = b in
+    Some(x + y);
+
+# Reduces to this
+def opt_add2(a: Opt[int], b: Opt[int]): Opt[int] =
+    bind_some2(a, lambda (x: int) =>
+    bind_some2(b, lambda (y: int) =>
+    Some(x + y)));
 
