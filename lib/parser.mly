@@ -11,6 +11,7 @@ open Ast
 %token <bool> BOOL
 %token <string> FQID
 %token <string> ID
+%token TARROW
 %token LAMBDA
 %token DEF IMPORT FROM TYPE
 %token MATCH WITH ARROW PIPE END
@@ -26,6 +27,7 @@ open Ast
 %nonassoc BINOP_3
 %left BINOP_2
 %left BINOP_1
+%right TARROW
 %nonassoc BINOP_0
 %nonassoc LPAR LBRACKET
 %start main             /* the entry point */
@@ -110,6 +112,7 @@ bin_expr:
   | expr_1 BINOP_1 expr_1 %prec BINOP_1 {}
   | expr_1 BINOP_2 expr_1 %prec BINOP_2 {}
   | expr_1 BINOP_3 expr_1 %prec BINOP_3 {}
+  | expr_1 TARROW expr_1 %prec TARROW {}
 ;
 
 lambda:

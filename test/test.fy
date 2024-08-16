@@ -72,6 +72,12 @@ def bind_some(x: Opt[int], f: Arrow[int, Opt[int]]): Opt[int] =
     | None => None     
     end;
 
+def bind_some2(x: Opt[int], f: int -> Opt[int]): Opt[int] =
+    match x with
+    | Some(x) => f(x)
+    | None => None     
+    end;
+
 def fact(x: int): int =
     if eq(x, 1) then 1 else mul(x, fact(sub(x, 1)));
 
@@ -85,6 +91,5 @@ def opt_add[A](a: Opt[A], b: Opt[A]): Opt[A] =
         end
     end;
 
-# @TODO add parathensed expressions
 # @TODO let monadic notation
 
