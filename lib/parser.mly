@@ -31,11 +31,11 @@ open Ast
 %nonassoc BINOP_0
 %nonassoc LPAR LBRACKET
 %start main             /* the entry point */
-%type <expr list> main
+%type <expr> main
 %%
 
 main:
-  | list(stmts) EOF { $1 };
+  | list(stmts) EOF { Module $1 };
 ;
 
 stmts:

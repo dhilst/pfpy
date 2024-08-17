@@ -10,11 +10,12 @@ let () =
       let parser =
         MenhirLib.Convert.Simplified.traditional2revised Parser.main
       in
-      let result = parser lexer in
-      Format.printf "parsed> \n%s"
-      @@ String.concat ";\n" (List.map Pfpy.Ast.show_expr result);
+      let ast = parser lexer in
+      Format.printf "parsed> \n%s" @@ Pfpy.Ast.show_expr ast;
       print_newline ();
       flush stdout;
+      print_endline "\n\nPython code: ";
+      Pfpy.Ast.to_py ast |> Format.eprintf "%s\n";
       exit 0
       (* let result' = Pfpy.Interpreter.eval result in *)
       (* Format.printf "result> %d" result'; print_newline(); flush stdout *)
