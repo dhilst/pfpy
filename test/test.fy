@@ -14,7 +14,7 @@ math.pi;
  
 # function calls
 f();
-f[];
+a[0];
 f(x);
 f(x,1);
 f(g(x), true, "hello", 1);

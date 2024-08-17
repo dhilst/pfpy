@@ -1,4 +1,4 @@
-[@@@ocaml.warning "-27"]
+[@@@ocaml.warning "-26-27"]
 
 open Format
 
@@ -44,23 +44,25 @@ type expr =
 
 let indent n s = sprintf "%s%s" (String.make (n * 4) ' ') s
 
-let rec to_py : expr -> string = function
-  | Module exprs -> String.concat "\n" @@ List.map to_py exprs
+let rec to_py ?(depth = 0) : expr -> string = function
+  | Module exprs -> String.concat "\n\n" @@ List.map to_py exprs
   | Import expr -> sprintf "import %s" @@ to_py expr
   | FromImport { mname; symbols } ->
       sprintf "from %s import %s" (to_py mname)
         (List.map to_py symbols |> String.concat ", ")
   | Def { fname; targs = None; args; rtype; body } ->
+      let depth = depth + 1 in
       sprintf "def %s(%s) -> %s:\n%s" fname
         (List.map to_py args |> String.concat ", ")
         (to_py rtype)
-        (to_py body |> sprintf "return %s" |> indent 1)
+        (insert_return ~depth body |> indent depth)
   | Def { fname; targs = Some targs; args; rtype; body } ->
+      let depth = depth + 1 in
       sprintf "def %s[%s](%s) -> %s:\n%s" fname
         (List.map to_py targs |> String.concat ", ")
         (List.map to_py args |> String.concat ", ")
         (to_py rtype)
-        (to_py body |> sprintf "return %s" |> indent 1)
+        (insert_return ~depth body |> indent depth)
   | TypeDef { tname; targs = None; body } ->
       sprintf "type %s = %s" tname (to_py body)
   | TypeDef { tname; targs = Some targs; body } ->
@@ -69,11 +71,13 @@ let rec to_py : expr -> string = function
         (to_py body)
   | LetMAssignStmt { op; fname } -> "# todo let assign stmt ..."
   | Match { scrutinee; patterns } ->
+      let depth = depth + 1 in
       sprintf "match %s:\n%s" (to_py scrutinee)
-        (List.map (fun expr -> to_py expr |> indent 2) patterns
-        |> String.concat "\n")
+        (List.map (fun expr -> to_py ~depth expr) patterns |> String.concat "\n")
   | MatchArm { pattern; body } ->
-      sprintf "case %s:\n%s" (to_py pattern) (to_py body |> indent 3)
+      sprintf "case %s:\n%s" (to_py pattern)
+        (to_py ~depth:(depth + 1) body |> indent (depth + 1))
+      |> indent depth
   | If { cond; then_; else_ } ->
       sprintf "%s if %s else %s" (to_py then_) (to_py cond) (to_py else_)
   | Let { op = None; name; value; body } ->
@@ -113,3 +117,15 @@ let rec to_py : expr -> string = function
   | FQID id -> id
   | ID id -> id
   | Todo s -> failwith @@ sprintf "Todo found %s" s
+
+and insert_return ?(depth = 0) = function
+  | Match { scrutinee; patterns } ->
+      let depth = depth + 1 in
+      sprintf "match %s:\n%s" (to_py scrutinee)
+        (List.map (fun expr -> insert_return ~depth expr) patterns
+        |> String.concat "\n")
+  | MatchArm { pattern; body } ->
+      sprintf "case %s:\n%s" (to_py pattern)
+        (insert_return ~depth:(depth + 1) body |> indent (depth + 1))
+      |> indent depth
+  | expr -> sprintf "return %s" (to_py ~depth expr)
