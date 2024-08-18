@@ -45,8 +45,15 @@ type expr =
 
 let indent n s = sprintf "%s%s" (String.make (n * 4) ' ') s
 
+let header =
+  {|from typing import Callable, Union, cast
+from dataclasses import dataclass
+
+|}
+
 let rec to_py ?(depth = 0) : expr -> string = function
-  | Module exprs -> String.concat "\n\n" @@ List.map to_py exprs
+  | Module exprs ->
+      sprintf "%s%s" header @@ String.concat "\n\n" @@ List.map to_py exprs
   | Import expr -> sprintf "import %s" @@ to_py expr
   | FromImport { mname; symbols } ->
       sprintf "from %s import %s" (to_py mname)
@@ -92,8 +99,13 @@ let rec to_py ?(depth = 0) : expr -> string = function
       sprintf "%s = %s;\n%s" name (to_py value) (to_py body)
   | Let { op = Some op; name; value; body } -> "# todo monadic let ..."
   | LetMAssign { op; fname; body } -> "# todo monadic let assign ..."
+  | BinOp (Tuple args, "->", e2) ->
+      sprintf "Callable[[%s], %s] "
+        (List.map to_py args |> String.concat ", ")
+        (to_py e2)
   | BinOp (e1, "->", e2) -> sprintf "Callable[[%s], %s]" (to_py e1) (to_py e2)
   | BinOp (e1, op, e2) -> sprintf "%s %s %s" (to_py e1) op (to_py e2)
+  | Tuple [ expr ] -> sprintf "(%s,)" @@ to_py expr
   | Tuple exprs -> sprintf "(%s)" @@ String.concat ", " @@ List.map to_py exprs
   | Set exprs -> sprintf "{%s}" @@ String.concat ", " @@ List.map to_py exprs
   | List exprs -> sprintf "[%s]" @@ String.concat ", " @@ List.map to_py exprs
@@ -149,7 +161,7 @@ and gendataclass = function
       let args =
         List.mapi
           (fun index expr ->
-            to_py expr |> sprintf "value%d: %s" index |> indent 1)
+            to_py expr |> sprintf "val%d: %s" index |> indent 1)
           args
         |> String.concat "\n"
       in
@@ -157,10 +169,15 @@ and gendataclass = function
 class %s[%s]:
 %s
 |} name typs args
+  | ID name -> sprintf {|@dataclass
+class %s:
+  pass
+|} name
   | e -> failwith @@ sprintf "Bad data type definition %s" (show_expr e)
 
 and gendataclasses = function
   | Index { f = ID "Union"; args } ->
       let ds = List.map gendataclass args |> String.concat "\n" in
       ds
+  | Index { f = ID name; args } as idx -> gendataclass idx
   | e -> failwith @@ sprintf "Bad data type definition %s" (show_expr e)
