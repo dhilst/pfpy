@@ -124,6 +124,6 @@ def opt_add2(a: Opt[int], b: Opt[int]): Opt[int] =
 # Reduces to this
 def opt_add2(a: Opt[int], b: Opt[int]): Opt[int] =
     bind_some2(a, lambda (x: int) =>
-        bind_some2(b, lambda (y: int) =>
-            Some(x + y)));
+    bind_some2(b, lambda (y: int) =>
+    Some(x + y)));
 

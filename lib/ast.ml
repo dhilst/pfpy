@@ -15,6 +15,7 @@ type expr =
       body : expr;
     }
   | TypeDef of { tname : string; targs : expr list option; body : expr }
+  | DataTypeDef of { tname : string; targs : expr list option; body : expr }
   | LetMAssignStmt of { op : string; fname : string }
   (* let (let* ) = body *)
   (* Expressions *)
@@ -63,6 +64,13 @@ let rec to_py ?(depth = 0) : expr -> string = function
         (List.map to_py args |> String.concat ", ")
         (to_py rtype)
         (insert_return ~depth body |> indent depth)
+  | DataTypeDef { tname; targs = None; body } ->
+      let dataclasses = gendataclasses body in
+      sprintf "%s\ntype %s = %s" dataclasses tname (to_py body)
+  | DataTypeDef { tname; targs = Some targs; body } ->
+      let dataclasses = gendataclasses body in
+      let typs = List.map to_py targs |> String.concat ", " in
+      sprintf "%s\ntype %s[%s] = %s" dataclasses tname typs (to_py body)
   | TypeDef { tname; targs = None; body } ->
       sprintf "type %s = %s" tname (to_py body)
   | TypeDef { tname; targs = Some targs; body } ->
@@ -129,3 +137,30 @@ and insert_return ?(depth = 0) = function
         (insert_return ~depth:(depth + 1) body |> indent (depth + 1))
       |> indent depth
   | expr -> sprintf "return %s" (to_py ~depth expr)
+
+and gendataclass = function
+  | Index { f = ID name; args } ->
+      let typs =
+        List.map to_py
+          (* (function Arg { typ; _ } -> to_py typ | _ -> assert false) *)
+          args
+        |> String.concat ", "
+      in
+      let args =
+        List.mapi
+          (fun index expr ->
+            to_py expr |> sprintf "value%d: %s" index |> indent 1)
+          args
+        |> String.concat "\n"
+      in
+      sprintf {|@dataclass
+class %s[%s]:
+%s
+|} name typs args
+  | e -> failwith @@ sprintf "Bad data type definition %s" (show_expr e)
+
+and gendataclasses = function
+  | Index { f = ID "Union"; args } ->
+      let ds = List.map gendataclass args |> String.concat "\n" in
+      ds
+  | e -> failwith @@ sprintf "Bad data type definition %s" (show_expr e)

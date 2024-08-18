@@ -12,6 +12,7 @@ open Ast
 %token <string> FQID
 %token <string> ID
 %token TARROW
+%token DATA
 %token LAMBDA
 %token DEF IMPORT FROM TYPE
 %token MATCH WITH ARROW PIPE END
@@ -47,6 +48,7 @@ stmt:
   | def { $1 }
   | expr_0 { $1 }
   | type_ { $1 }
+  | data { $1 }
   | letm_assign { $1 }
 ;
 
@@ -57,6 +59,10 @@ letm_assign:
 
 type_: 
   | TYPE ID brkcommalist(targ)? EQ expr_0 { TypeDef { tname = $2; targs = $3; body = $5 } }
+;
+
+data: 
+  | DATA ID brkcommalist(targ)? EQ expr_0 { DataTypeDef { tname = $2; targs = $3; body = $5 } }
 ;
 
 fqid:

@@ -42,6 +42,7 @@ let rec token buf =
       let i = int_of_string (Sedlexing.Utf8.lexeme buf) in
       INT i
   | "true" -> BOOL true
+  | "data" -> DATA
   | "false" -> BOOL false
   | "def" -> DEF
   | "import" -> IMPORT
