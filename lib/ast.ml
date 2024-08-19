@@ -157,6 +157,9 @@ and gendataclass = function
           (* (function Arg { typ; _ } -> to_py typ | _ -> assert false) *)
           args
         |> String.concat ", "
+        |> function
+        | "" -> ""
+        | s -> sprintf "[%s]" s
       in
       let args =
         List.mapi
@@ -166,7 +169,7 @@ and gendataclass = function
         |> String.concat "\n"
       in
       sprintf {|@dataclass
-class %s[%s]:
+class %s%s:
 %s
 |} name typs args
   | ID name -> sprintf {|@dataclass

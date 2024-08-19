@@ -30,16 +30,6 @@ def result_binderr[A, B, E1, E2](
 ): Result[B, E2] =
   result_bind(result_maperr(x, ferr), f);
 
-data PairT[A, B] = Pair[A, B];
-
-def swap_pair[A, B](p: PairT[A, B]): PairT[B, A] =
-  match p with
-  | Pair(x, y) => Pair(y, x)
-  end;
-
-
-assert((swap_pair(Pair(1, "true"))) == Pair("true", 1));
-
 data Opt[T] = Union[Some[T], Nothing];
 
 def opt_bind[A, B](
@@ -57,4 +47,16 @@ assert(
   # does not carry enough information
   opt_bind(cast(Opt[int], Nothing()), lambda (y: int) =>
   Some (x + y))) == Nothing());
+
     
+data PairT[A, B] = Pair[A, B];
+
+def pair_swap[A, B](p: PairT[A, B]): PairT[B, A] =
+  match p with
+  | Pair(x, y) => Pair(y, x)
+  end;
+
+assert((pair_swap(Pair(1, "true"))) == Pair("true", 1));
+
+data PairIntT[T] = Pair[int, T];
+
