@@ -58,5 +58,3 @@ def pair_swap[A, B](p: PairT[A, B]): PairT[B, A] =
 
 assert((pair_swap(Pair(1, "true"))) == Pair("true", 1));
 
-data PairIntT[T] = Pair[int, T];
-

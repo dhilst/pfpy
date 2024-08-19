@@ -16,14 +16,11 @@ type expr =
     }
   | TypeDef of { tname : string; targs : expr list option; body : expr }
   | DataTypeDef of { tname : string; targs : expr list option; body : expr }
-  | LetMAssignStmt of { op : string; fname : string }
-  (* let (let* ) = body *)
   (* Expressions *)
   | Match of { scrutinee : expr; patterns : expr list }
   | If of { cond : expr; then_ : expr; else_ : expr }
   | MatchArm of { pattern : expr; body : expr }
-  | Let of { op : string option; name : string; value : expr; body : expr }
-  | LetMAssign of { op : string; fname : string; body : expr }
+  | Let of { pat : expr; value : expr; body : expr }
   | BinOp of expr * string * expr
   | Tuple of expr list
   | Set of expr list
@@ -72,10 +69,10 @@ let rec to_py ?(depth = 0) : expr -> string = function
         (to_py rtype)
         (insert_return ~depth body |> indent depth)
   | DataTypeDef { tname; targs = None; body } ->
-      let dataclasses = gendataclasses body in
+      let dataclasses = gendataclasses [] body in
       sprintf "%s\ntype %s = %s" dataclasses tname (to_py body)
   | DataTypeDef { tname; targs = Some targs; body } ->
-      let dataclasses = gendataclasses body in
+      let dataclasses = gendataclasses targs body in
       let typs = List.map to_py targs |> String.concat ", " in
       sprintf "%s\ntype %s[%s] = %s" dataclasses tname typs (to_py body)
   | TypeDef { tname; targs = None; body } ->
@@ -84,7 +81,6 @@ let rec to_py ?(depth = 0) : expr -> string = function
       sprintf "type %s[%s] = %s" tname
         (List.map to_py targs |> String.concat ", ")
         (to_py body)
-  | LetMAssignStmt { op; fname } -> "# todo let assign stmt ..."
   | Match { scrutinee; patterns } ->
       let depth = depth + 1 in
       sprintf "match %s:\n%s" (to_py scrutinee)
@@ -95,10 +91,9 @@ let rec to_py ?(depth = 0) : expr -> string = function
       |> indent depth
   | If { cond; then_; else_ } ->
       sprintf "%s if %s else %s" (to_py then_) (to_py cond) (to_py else_)
-  | Let { op = None; name; value; body } ->
-      sprintf "%s = %s;\n%s" name (to_py value) (to_py body)
-  | Let { op = Some op; name; value; body } -> "# todo monadic let ..."
-  | LetMAssign { op; fname; body } -> "# todo monadic let assign ..."
+  | Let { pat; value; body } ->
+      sprintf "%s = %s;\n%s" (to_py pat) (to_py value)
+        (to_py ~depth body |> indent depth)
   | BinOp (Tuple args, "->", e2) ->
       sprintf "Callable[[%s], %s] "
         (List.map to_py args |> String.concat ", ")
@@ -148,15 +143,17 @@ and insert_return ?(depth = 0) = function
       sprintf "case %s:\n%s" (to_py pattern)
         (insert_return ~depth:(depth + 1) body |> indent (depth + 1))
       |> indent depth
+  | Let { pat; value; body } ->
+      sprintf "%s = %s;\n%s" (to_py pat) (to_py value)
+        (insert_return ~depth body |> indent depth)
   | expr -> sprintf "return %s" (to_py ~depth expr)
 
-and gendataclass = function
+and gendataclass (targs : expr list) = function
   | Index { f = ID name; args } ->
+      let typparms = List.map to_py targs in
+      let is_typparm x = List.mem x typparms in
       let typs =
-        List.map to_py
-          (* (function Arg { typ; _ } -> to_py typ | _ -> assert false) *)
-          args
-        |> String.concat ", "
+        List.map to_py args |> List.filter is_typparm |> String.concat ", "
         |> function
         | "" -> ""
         | s -> sprintf "[%s]" s
@@ -178,9 +175,9 @@ class %s:
 |} name
   | e -> failwith @@ sprintf "Bad data type definition %s" (show_expr e)
 
-and gendataclasses = function
+and gendataclasses (targs : expr list) = function
   | Index { f = ID "Union"; args } ->
-      let ds = List.map gendataclass args |> String.concat "\n" in
+      let ds = List.map (gendataclass targs) args |> String.concat "\n" in
       ds
-  | Index { f = ID name; args } as idx -> gendataclass idx
+  | Index { f = ID name; args } as idx -> gendataclass targs idx
   | e -> failwith @@ sprintf "Bad data type definition %s" (show_expr e)

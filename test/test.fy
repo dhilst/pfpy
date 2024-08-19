@@ -89,19 +89,6 @@ def bind_some2(x: Opt[int], f: int -> Opt[int]): Opt[int] =
     | None => None     
     end;
 
-# monadic let assigning
-let (let*) = bind_some2;
-# 
-# # monadic let usage
-let* x = Some(1) in
-let* y = Some(2) in
-Some(x + y);
-# 
-let (let*) = bind_some2 in
-let* w = Some(1) in
-let* z = Some(2) in
-Some(w + w);
-
 def fact(x: int): int =
     if eq(x, 1) then 1 else mul(x, fact(sub(x, 1)));
 
@@ -115,13 +102,6 @@ def opt_add[A](a: Opt[A], b: Opt[A]): Opt[A] =
         end
     end;
 
-def opt_add2(a: Opt[int], b: Opt[int]): Opt[int] =
-    let (let*) = bind_some2 in
-    let* x = a in
-    let* y = b in
-    Some(x + y);
-
-# Reduces to this
 def opt_add2(a: Opt[int], b: Opt[int]): Opt[int] =
     bind_some2(a, lambda (x: int) =>
     bind_some2(b, lambda (y: int) =>

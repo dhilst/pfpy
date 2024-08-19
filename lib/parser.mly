@@ -49,12 +49,6 @@ stmt:
   | expr_0 { $1 }
   | type_ { $1 }
   | data { $1 }
-  | letm_assign { $1 }
-;
-
-// Monadic let assign
-letm_assign:
-  | LET LPAR LET BINOP_2 RPAR EQ ID { LetMAssignStmt { op = $4; fname = $7 } }
 ;
 
 type_: 
@@ -133,8 +127,8 @@ lambda:
 ;
 
 let_: 
-  | LET BINOP_2? ID EQ expr_0 IN expr_0 {  Let { op = $2; name = $3; value = $5; body = $7 } }
-  | LET LPAR LET BINOP_2 RPAR EQ ID IN expr_0 { LetMAssign { op = $4; fname = $7; body = $9 } }
+  | LET ID EQ expr_0 IN expr_0 {  Let { pat = ID $2; value = $4; body = $6 } }
+  | LET tuple EQ expr_0 IN expr_0 {  Let { pat = $2; value = $4; body = $6 } }
 ;
 
 if_:
