@@ -23,4 +23,17 @@ def monday(
   ([a1, a2, a3, a4, a5], s5);
   
 
-  print(monday(Locked()));
+print(monday(Locked()));
+
+data StateT[S, A] = State[(S,) -> tuple[A, S]];
+
+let x = State(lambda (x: int) => (None, x + 1)) in
+print(x.val0(1));
+
+type TurnstileStateT = State[TurnstileState, TurnstileOutput];
+
+
+
+  
+
+

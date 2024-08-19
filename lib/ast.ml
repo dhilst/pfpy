@@ -48,6 +48,21 @@ from dataclasses import dataclass
 
 |}
 
+module StringSet = Set.Make (String)
+
+(* deduplicates a list of strings while keeping the order *)
+let list_deduplicate l =
+  let open StringSet in
+  let rec aux set acc = function
+    | hd :: tl ->
+        if mem hd set then
+          aux set acc tl
+        else
+          aux (add hd set) (hd :: acc) tl
+    | [] -> List.rev acc
+  in
+  aux empty [] l
+
 let rec to_py ?(depth = 0) : expr -> string = function
   | Module exprs ->
       sprintf "%s%s" header @@ String.concat "\n\n" @@ List.map to_py exprs
@@ -150,10 +165,19 @@ and insert_return ?(depth = 0) = function
 
 and gendataclass (targs : expr list) = function
   | Index { f = ID name; args } ->
-      let typparms = List.map to_py targs in
-      let is_typparm x = List.mem x typparms in
-      let typs =
-        List.map to_py args |> List.filter is_typparm |> String.concat ", "
+      let rec get_tvars acc = function
+        | ID x -> x :: acc
+        | BinOp (e1, _, e2) ->
+            let acc = get_tvars acc e1 in
+            let acc = get_tvars acc e2 in
+            acc
+        | Index { args; _ } -> List.fold_left get_tvars acc args
+        | Tuple args -> List.fold_left get_tvars acc args
+        | _ -> acc
+      in
+      let tvars =
+        List.fold_left get_tvars [] args
+        |> List.rev |> list_deduplicate |> String.concat ", "
         |> function
         | "" -> ""
         | s -> sprintf "[%s]" s
@@ -168,7 +192,7 @@ and gendataclass (targs : expr list) = function
       sprintf {|@dataclass
 class %s%s:
 %s
-|} name typs args
+|} name tvars args
   | ID name -> sprintf {|@dataclass
 class %s:
   pass
@@ -179,5 +203,5 @@ and gendataclasses (targs : expr list) = function
   | Index { f = ID "Union"; args } ->
       let ds = List.map (gendataclass targs) args |> String.concat "\n" in
       ds
-  | Index { f = ID name; args } as idx -> gendataclass targs idx
+  | Index { f = ID _; args } as idx -> gendataclass targs idx
   | e -> failwith @@ sprintf "Bad data type definition %s" (show_expr e)
